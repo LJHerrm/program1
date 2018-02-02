@@ -1,0 +1,5 @@
+<project name = "WebServer" default = "java" >
+    <target name = "java" >
+        <javac srcdir = "." />
+    </target>
+</project>
