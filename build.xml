@@ -2,4 +2,8 @@
     <target name = "java" >
         <javac srcdir = "." />
     </target>
+    <target name = "run" >
+        <javac srcdir = "." />
+        <java classpath = "." classname = "WebServer" />
+    </target>
 </project>

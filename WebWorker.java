@@ -60,8 +60,20 @@ public void run()
       
       //modified readHTTPRequest to return a string
       url = readHTTPRequest(is);
-      writeHTTPHeader(os,"text/html");
       
+      //send different strings as content type 
+      if (url.contains(".html"))
+         writeHTTPHeader(os, "text/html");
+      
+      else if (url.contains(".gif"))
+         writeHTTPHeader(os, "image/gif");
+      
+      else if (url.contains(".jpg"))
+         writeHTTPHeader(os, "image/jpeg");
+      
+      else if (url.contains(".png"))
+         writeHTTPHeader(os, "image/png");
+         
       //modified writeContent to accept a string of the filepath
       writeContent(os, url);
       
@@ -99,9 +111,9 @@ private String readHTTPRequest(InputStream is)
          break;
       }
       
-      //if it contains a GET and .html in line, split line into words
+      //if it contains a GET and not favicon, split line into words
       //and store in headerArray. the word we want is headerArray[1]
-         if (line.contains("GET") && line.contains(".html")) {
+         if (line.contains("GET") && !(line.contains("favicon"))) {
             
             headerArray = line.split("\\s+");
             fileHeader = headerArray[1];
@@ -155,36 +167,62 @@ private void writeContent(OutputStream os, String filePath) throws Exception
    filePath = (System.getProperty("user.dir") + filePath);
    File inputFile = new File(filePath);
    
-   os.write("<html><head></head><body>\n".getBytes());
-   os.write("<h3>My web server works!</h3>\n".getBytes());
+   //if html
+   if (filePath.contains(".html")) {
    
-   try {
-      
-      Scanner fileScan = new Scanner(inputFile);
-      
-      while (fileScan.hasNext()) {
-      
-         s = fileScan.next();
-         
-         os.write("<p>".getBytes());
-         
-         if (s.equals("<cs371date>"))
-            os.write((df.format(d)).getBytes());
-         else if (s.equals("<cs371server>"))
-            os.write("This is Lucas's server".getBytes());
-         else
-            os.write(s.getBytes());
-      
-      os.write("</p>".getBytes());
-         
-      }//end while
-   }//end try
+      os.write("<html><head></head><body>\n".getBytes());
+      os.write("<h3>My web server works!</h3>\n".getBytes());
    
-   catch (FileNotFoundException e) {
+      try {
+      
+         Scanner fileScan = new Scanner(inputFile);
+      
+         while (fileScan.hasNext()) {
+      
+            s = fileScan.nextLine();
+            
+         
+            if (s.contains("<cs371date>"))
+               os.write(s.replace("<cs371date>",(df.format(d))).getBytes());
+            else if (s.contains("<cs371server>"))
+               os.write(s.replace("<cs371server>", "This is Lucas's server").getBytes());
+            else
+               os.write(s.getBytes());
+      
+         os.write("</br>".getBytes());
+         
+         }//end while
+      }//end try
+   
+      catch (FileNotFoundException e) {
          os.write("404 Not Found.".getBytes());
          
       }//end catch
-   os.write("</body></html>\n".getBytes());
-}
+      os.write("</body></html>\n".getBytes());
+   
+   }//end if html
+   
+   
+   //if png, jpg or gif
+   else if (filePath.contains(".png") || filePath.contains(".jpg") || filePath.contains(".gif")) {
+      try (InputStream inputStream = new FileInputStream(inputFile);){
+      
+         double fileSize = inputFile.length();
+      
+         byte[] byteArray = new byte[(int) fileSize];
+      
+         inputStream.read(byteArray);
+         os.write(byteArray);
+         
+      }//end try
+      
+      catch (FileNotFoundException e) {
+         
+         os.write("404 Not Found.".getBytes());
+      }//end catch
+      
+   }//end else
+      
+} //end writeContent
 
 } // end class
